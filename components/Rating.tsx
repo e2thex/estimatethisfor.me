@@ -15,52 +15,82 @@ import MdIcon from './MdIcon';
 const UserForm = (props:{currentNode:PredicateNode<StoreNode>}) => {
 	const { currentNode  } = props;
 	const name = useNode(currentNode.s('name'))  as string || '';
-	const reason = useNode(currentNode.s('reason'))  as string || '';
-	const score = useNode(currentNode.s('score')) as string || '';
+	const b = parseInt(useNode(currentNode.s('b')))  || 0;
+	const o = parseInt(useNode(currentNode.s('o')))  || 0;
+	const a = parseInt(useNode(currentNode.s('a')))  || 0;
+	const t = parseInt(useNode(currentNode.s('t')))  || 0;
 	const [tempName, setTempName] = useState('');
-	const [tempReason, setTempReason] = useState(reason);
-	const [tempScore, setTempScore] = useState(score);
+	const [tempB, setTempB] = useState(b);
+	const [tempO, setTempO] = useState(o);
+	const [tempA, setTempA] = useState(a);
+	const [tempT, setTempT] = useState(t);
+	const isChange = !(tempName === name && tempB === b && tempO === o && tempA === a && tempT ===t)
+	let total = tempB + tempO + tempA + tempT
 	const node = useAspotContext();
 	const update = () => {
-		if (tempName === name && tempScore === score && tempReason === reason) {
+		if (!isChange) {
 		  toast.error('You Did not enter anything to set.', {autoClose: 2000, hideProgressBar: true})
       return;
 		}
+		if (!tempName) {
+		  toast.error('Please enter a name.', {autoClose: 2000, hideProgressBar: true})
+      return;
+		}
+		if (total < 10) {
+		  toast.error('Your Total must add up to 100%.', {autoClose: 2000, hideProgressBar: true})
+      return;
+		}
     if (tempName) currentNode.s('name').is(tempName);
-    if (tempScore) currentNode.s('score').is(tempScore);
-    if (tempReason) currentNode.s('reason').is(tempReason);
+		currentNode.s('b').is(tempB.toString())
+		currentNode.s('o').is(tempO.toString())
+		currentNode.s('a').is(tempA.toString())
+		currentNode.s('t').is(tempT.toString())
 		toast.success('Set/Update Score! Thank you.', {autoClose: 2000, hideProgressBar: true})
+	}
+	const Dot = () => <span className="w-6 text-transparent bg-blue-500 hover:bg-blue-800 cursor-grab rounded-full m-1 inline-block">a</span>;
+	const Pcomp = (props:{label:string, max:number, setTemp:(n:number)=>void, temp:number}) => {
+		const {label, max, setTemp, temp,	 ...rest} = props;
+		const values = ['0%', '10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '100%'];
+		const options = values.filter((v,i) => i <= max);
+		const optionsThatSteal = values.filter((v,i) => i > max);
+		console.log({values, options, optionsThatSteal})
+		return (
+		<div {...rest}>
+			<label htmlFor={label} className="w-32 inline-block text-lg"><span className="font-bold text-2xl">{label.substring(0,1)}</span>{label.substring(1)}</label>
+			<select className="form-select form-select-lg mb-3
+      appearance-none
+      px-4
+      py-2
+      text-xl
+      font-normal
+      text-gray-700
+      bg-white bg-clip-padding bg-no-repeat
+      border border-solid border-gray-300
+      rounded
+      transition
+      ease-in-out
+      m-0
+      focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none" id={label} value = {temp} onChange={e => setTemp(parseInt(e.currentTarget.value))} >
+				{options.map((v,i) => <option key={v} value={i}>{v}</option>)}
+			</select>
+			{values.filter((v,i) => i < temp).map((v, i) => <Dot key={i+max}/>)}{JSON.stringify((new Array(temp)).keys)}
+		</div>
+		);
 	}
 	return (
 		<>
-		   <input autoFocus
+		  <input autoFocus
       className = "text-center border border-red w-full p-2 text-lg placeholder-gray-600 border-gray-600 placeholder-italic" 
       placeholder="Enter your name" 
 			onChange={e => setTempName(e.target.value)}
       defaultValue = {name}
-     ></input>	
-		 <label htmlFor="score" className="sr-only">Meeting Score between 1 and 10</label>
-		 <input id="score" className ="mt-4 w-full cursor-pointer" type ='range' max='10' min='1' step='1' list='tickmarks' onChange={v => setTempScore(v.target.value.toString())} value ={parseInt(tempScore) || 1} defaultValue={parseInt(tempScore || score || '1')}/>
-			<datalist id="tickmarks" className="flex flex-row justify-between w-full text-center text-gray-600 mb-4 cursor-pointer">
-				<option value="1" label="1" onClick={e=> setTempScore("1")}></option>
-				<option value="2" label="2" onClick={e=> setTempScore("2")}></option> 
-				<option value="3" label="3" onClick={e=> setTempScore("3")}></option>  
-				<option value="4" label="4" onClick={e=> setTempScore("4")}></option> 
-				<option value="5" label="5" onClick={e=> setTempScore("5")}></option> 
-				<option value="6" label="6" onClick={e=> setTempScore("6")}></option> 
-				<option value="7" label="7" onClick={e=> setTempScore("7")}></option> 
-				<option value="8" label="8" onClick={e=> setTempScore("8")}></option> 
-				<option value="9" label="9" onClick={e=> setTempScore("9")}></option> 
-				<option value="10" label="10" onClick={e=> setTempScore("10")}></option>  
-			</datalist>
-		<textarea 
-		  className = "max-w-full border w-full p-2 text-lg placeholder-gray-600 border-gray-600 " 
-			placeholder ="Reason for Score" 
-			onChange={e => setTempReason(e.target.value)}
-			defaultValue={reason}
-			></textarea>
-    <button 
-			className={`w-full border border-gray-600 p-2 text-lg  ${tempName !== name || tempScore !== score || tempReason !== reason ? 'bg-blue-300 rounded hover:bg-blue-500 hover:text-white' : ''}`}
+      ></input>	
+			<Pcomp label="Before" max ={10 - total + tempB} setTemp={setTempB} temp={tempB} />
+			<Pcomp label="Ontime" max ={10 - total + tempO} setTemp={setTempO} temp={tempO} />
+			<Pcomp label="After" max = {10 - total + tempA} setTemp={setTempA} temp={tempA} />
+			<Pcomp label="Terrible" max ={10 - total + tempT} setTemp={setTempT} temp={tempT} />
+      <button 
+			className={`w-full border border-gray-600 p-2 text-lg  ${(isChange && (total === 10)) ? 'bg-blue-300 rounded hover:bg-blue-500 hover:text-white' : ''}`}
 			onClick={update}
 			>{name ? 'Resubmit' : 'Submit and See Results'}</button>
 		</>
@@ -81,15 +111,19 @@ const markdownResults = (data:SubjectNode<StoreNode>) => {
 const ResultRow = (props:{data:PredicateNode<StoreNode>, removeItem:() => void}) => {
 	const {data, removeItem } = props;
 	const name = useNode(data.s('name'));
-	const score = useNode(data.s('score'));
-	const reason = useNode(data.s('reason'));
+	const b = useNode(data.s('b'));
+	const o = useNode(data.s('o'));
+	const a = useNode(data.s('a'));
+	const t = useNode(data.s('t'));
 	
 	return (
 	  <tr className="border-t">
 	    <td className="p-2 text-center">{name}</td>
-	    <td className="text-center">{score}</td>
-	    <td className="text-center w-7/12">{reason}</td>
-	    <td className="text-center w-1/12" >
+	    <td className="text-center">{parseInt(b)*10}%</td>
+	    <td className="text-center">{parseInt(o)*10}%</td>
+	    <td className="text-center">{parseInt(a)*10}%</td>
+	    <td className="text-center">{parseInt(t)*10}%</td>
+	    <td className="text-center" >
 	      <div className ="cursor-pointer p-2 rounded-full border-red-700 text-red-700 hover:font-bold" onClick={removeItem} >X</div>
 	    </td>
 	  </tr>
@@ -109,10 +143,11 @@ const Results = (props:{data:PredicateNode<StoreNode>[], deleteItem:(i:string) =
 	  <table id ='results' className="table-fixed w-full my-12">
 	    <thead>
 	      <tr>
-          <th className="w-1/6">Name</th>
-          <th className="w-1/6">Score</th>
-          <th className="w-7/12">Reason</th>
-          <th className="w-1/12"></th>
+          <th className="w-2/6">Name</th>
+          <th className="w-1/6">Before</th>
+          <th className="w-1/6">Ontime</th>
+          <th className="w-1/6">After</th>
+          <th className="w-1/6">Terrible</th>
 	      </tr>
 	    </thead>
 	    <tbody>
@@ -136,27 +171,38 @@ type Data = {
 const Summary = (props:{ data:PredicateNode<StoreNode>[]}) => {
   const {data} = props;
   const db = useAspotContext();
-  const [scoreNodes, setScoreNodes] =  useState(db.node('scores').list());
-  const getScores = () => db.node('scores').list().map(n => parseInt(n.s('score').value() || '')).filter(n => n);
-  const [scores, setScores] =  useState(getScores());
+  const getA = () => db.node('a').list().map(n => parseInt(n.s('a').value() || '')).filter(n => n);
+  const getB = () => db.node('b').list().map(n => parseInt(n.s('b').value() || '')).filter(n => n);
+  const [As, setAs] =  useState(getA());
+  const [Bs, setBs] =  useState(getB());
 	// const score = useNodeList(db.node('scores'), 1).map(n => parseInt(n.score) || '').finter(n => n);n
 
-  db.watch((...sentences) => { if(sentences.filter(s => s.predicate === 'score').length) setScores(getScores())})
+  // db.watch((...sentences) => { if(sentences.filter(s => s.predicate === 'b').length) setBs(getB())})
+  // db.watch((...sentences) => { if(sentences.filter(s => s.predicate === 'a').length) setAs(getA())})
   return (
-    <table className="w-1/4 text-lg mx-auto my-12">
+    <table className="w-full text-lg mx-auto my-12">
       <caption className="font-bold text-2xl">Summary Data</caption>
       <tbody>
         <tr>
-          <th className="text-left p-2">Max</th>
-          <td  className="text-center">{max(scores)}</td>
+          <th className="text-left p-2 w-2/6">Max bob</th>
+          <td  className="text-center w-1/6">{max(As)}</td>
+          <td  className="text-center w-1/6">{max(Bs)}</td>
+          <td  className="text-center w-1/6">{max(As)}</td>
+          <td  className="text-center w-1/6">{max(As)}</td>
         </tr>
         <tr className ="border-t">
-          <th className="text-left p-2">Mean</th>
-	        <td  className="text-center">{mean(scores).toPrecision(3)}</td>
+          <th className="text-left p-2 w-2/6">Mean</th>
+	        <td  className="text-center w-1/6">{mean(Bs).toPrecision(3)}</td>
+	        <td  className="text-center w-1/6">{mean(Bs).toPrecision(3)}</td>
+	        <td  className="text-center w-1/6">{mean(Bs).toPrecision(3)}</td>
+	        <td  className="text-center w-1/6">{mean(Bs).toPrecision(3)}</td>
         </tr>
         <tr className ="border-t">
-          <th className="text-left p-2">Min</th>
-          <td className="text-center">{min(scores)}</td>
+          <th className="text-left p-2 w-2/6">Min</th>
+          <td className="text-center w-1/6">{min(Bs)}</td>
+          <td className="text-center w-1/6">{min(Bs)}</td>
+          <td className="text-center w-1/6">{min(Bs)}</td>
+          <td className="text-center w-1/6">{min(Bs)}</td>
         </tr>
       </tbody>
     </table>
