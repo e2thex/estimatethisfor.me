@@ -5,6 +5,7 @@ import { mean, min, max } from 'lodash';
 import useLocalStorage from './useLocalStorage';
 import {markdownTable} from 'markdown-table'
 import { toast } from 'react-toastify';
+import { DragDropContainer, DropTarget } from 'react-drag-drop-container';
 import { useNode, AspotWrapper, useAspotContext, useNodeList} from '@aspot/react';
 import { aspot, PredicateNode, StoreNode, SubjectNode  } from '@aspot/core';
 import webSocketConnector from '@aspot/websocket';
@@ -47,7 +48,28 @@ const UserForm = (props:{currentNode:PredicateNode<StoreNode>}) => {
 		currentNode.s('t').is(tempT.toString())
 		toast.success('Set/Update Score! Thank you.', {autoClose: 2000, hideProgressBar: true})
 	}
-	const Dot = () => <span className="w-6 text-transparent bg-blue-500 hover:bg-blue-800 cursor-grab rounded-full m-1 inline-block">a</span>;
+  type DotAddProps = {
+		increase: () => void;
+	}
+	const DotAdd = (props:DotAddProps) => {
+		const { increase } = props;
+		return <span className="w-6 text-blue-500 border-blue-500 hover:border-blue-800 cursor-pointer rounded-full m-1 inline-block text-center font-bold"onClick={increase}>+</span>
+	}
+  type DotProps = {
+		decrease: () => void;
+	}
+	const DotRemove = (props:DotProps) => {
+		const { decrease } = props;
+		return <span className="w-6 text-blue-500 border-blue-500 hover:border-blue-800 cursor-pointer rounded-full m-1 inline-block text-center font-bold" onClick={decrease}>-</span>
+	}
+	const Dot = (props:DotProps) => {
+		const { decrease } = props;
+	  return (
+			<DragDropContainer targetKey="points" onDrop={decrease}  dragClass="cursor-grabbing">
+				<span className="w-6 text-transparent bg-blue-500 hover:bg-blue-800 cursor-grab rounded-full m-1 inline-block">a</span>
+			</DragDropContainer>
+		);
+	}
 	const Pcomp = (props:{label:string, max:number, setTemp:(n:number)=>void, temp:number}) => {
 		const {label, max, setTemp, temp,	 ...rest} = props;
 		const values = ['0%', '10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '100%'];
@@ -56,9 +78,10 @@ const UserForm = (props:{currentNode:PredicateNode<StoreNode>}) => {
 		console.log({values, options, optionsThatSteal})
 		return (
 		<div {...rest}>
-			<label htmlFor={label} className="w-32 inline-block text-lg"><span className="font-bold text-2xl">{label.substring(0,1)}</span>{label.substring(1)}</label>
+			<label htmlFor={label} className="w-1/6 inline-block text-lg"><span className="font-bold text-2xl">{label.substring(0,1)}</span>{label.substring(1)}</label>
 			<select className="form-select form-select-lg mb-3
       appearance-none
+			w-1/6
       px-4
       py-2
       text-xl
@@ -73,7 +96,19 @@ const UserForm = (props:{currentNode:PredicateNode<StoreNode>}) => {
       focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none" id={label} value = {temp} onChange={e => setTemp(parseInt(e.currentTarget.value))} >
 				{options.map((v,i) => <option key={v} value={i}>{v}</option>)}
 			</select>
-			{values.filter((v,i) => i < temp).map((v, i) => <Dot key={i+max}/>)}{JSON.stringify((new Array(temp)).keys)}
+		  <div className="w-2/3 inline-block">
+				<DropTarget highlightClassName="bg-blue-800 border" targetKey="points" onHit={() => setTemp(temp+1)}>
+					<div className='w-full'>
+            {temp>0? <DotRemove decrease={() => setTemp(temp-1)} /> : <></>}
+						{values.filter((v,i) => i < temp).map((v, i) => <Dot decrease={() => setTemp(temp-1)} key={i+max}/>)}{JSON.stringify((new Array(temp)).keys)}
+            {temp<max? <DotAdd increase={() => setTemp(temp+1)} /> : <></>}
+						{max===0 ? <span className="text-transparent">Empty</span> :<></>}
+					</div>
+
+				</DropTarget>
+				
+			</div>
+			
 		</div>
 		);
 	}
