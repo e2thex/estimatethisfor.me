@@ -12,9 +12,36 @@ import webSocketConnector from '@aspot/websocket';
 import copyToClipBoard from 'copy-to-clipboard';
 import CopyIcon from './CopyIcon'
 import MdIcon from './MdIcon';
+import DateSelector from './DateSelector';
 
-const UserForm = (props:{currentNode:PredicateNode<StoreNode>}) => {
-	const { currentNode  } = props;
+const formatDate = (date:number) => {
+  return new Date(date).toLocaleDateString('us-EN',{month:'short',day:'2-digit'});
+}
+const getDate = (deadline:number, delta:number) => {
+  return deadline + (deadline -Date.now())*delta
+}
+const  getDates = (date:string) => {
+  const today = Date.now();
+	const deadline = Date.parse(date);
+	const delta = deadline - today;
+	const before = formatDate(getDate(deadline, -.1)) 
+	const after = formatDate(getDate(deadline, .1)) 
+	const terrible = formatDate(getDate(deadline, .2))  
+	const r = {
+		b: `before ${before}}`,
+		o: `between ${before} and ${after}`,
+		a: `between ${after} and ${terrible}`,
+		t: `after ${terrible}`,
+	}
+	console.log({today, deadline, r});
+}
+
+const UserForm = (props:{userId:string, currentNode:PredicateNode<StoreNode>}) => {
+	const { userId } = props;
+	const db = useAspotContext();
+	const deadline = useNode(db.node('current').s('date'));
+	const dates = getDates(deadline);
+	const currentNode = db.node('scores').s(userId);
 	const name = useNode(currentNode.s('name'))  as string || '';
 	const b = parseInt(useNode(currentNode.s('b')))  || 0;
 	const o = parseInt(useNode(currentNode.s('o')))  || 0;
@@ -70,18 +97,22 @@ const UserForm = (props:{currentNode:PredicateNode<StoreNode>}) => {
 			</DragDropContainer>
 		);
 	}
-	const Pcomp = (props:{label:string, max:number, setTemp:(n:number)=>void, temp:number}) => {
-		const {label, max, setTemp, temp,	 ...rest} = props;
+	const Pcomp = (props:{label:string, max:number, setTemp:(n:number)=>void, temp:number, desc:string}) => {
+		const {label, max, setTemp, temp,	desc, ...rest} = props;
 		const values = ['0%', '10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '100%'];
 		const options = values.filter((v,i) => i <= max);
 		const optionsThatSteal = values.filter((v,i) => i > max);
-		console.log({values, options, optionsThatSteal})
 		return (
-		<div {...rest}>
-			<label htmlFor={label} className="w-1/6 inline-block text-lg"><span className="font-bold text-2xl">{label.substring(0,1)}</span>{label.substring(1)}</label>
-			<select className="form-select form-select-lg mb-3
+		<div {...rest} className ="flex flex-wrap" title={desc}>
+			<label htmlFor={label} title={desc} className="lg:w-1/6 block text-lg w-1/2">
+				<span className="font-bold text-2xl">{label.substring(0,1)}</span>
+				{label.substring(1)} 
+				<div className="text-sm inline-block lg:block">({desc})</div>
+			</label>
+			<select title={desc} className="form-select form-select-lg mb-3
       appearance-none
-			w-1/6
+			lg:w-1/6
+			w-1/2
       px-4
       py-2
       text-xl
@@ -93,10 +124,11 @@ const UserForm = (props:{currentNode:PredicateNode<StoreNode>}) => {
       transition
       ease-in-out
       m-0
+			block
       focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none" id={label} value = {temp} onChange={e => setTemp(parseInt(e.currentTarget.value))} >
 				{options.map((v,i) => <option key={v} value={i}>{v}</option>)}
 			</select>
-		  <div className="w-2/3 inline-block">
+		  <div className="w-full lg:w-4/6 block">
 				<DropTarget highlightClassName="bg-blue-800 border" targetKey="points" onHit={() => setTemp(temp+1)}>
 					<div className='w-full'>
             {temp>0? <DotRemove decrease={() => setTemp(temp-1)} /> : <></>}
@@ -112,6 +144,13 @@ const UserForm = (props:{currentNode:PredicateNode<StoreNode>}) => {
 		</div>
 		);
 	}
+	const before = formatDate(getDate(Date.parse(deadline), -.1)) 
+	const after = formatDate(getDate(Date.parse(deadline), .1)) 
+	const terrible = formatDate(getDate(Date.parse(deadline), .2))  
+	const bDesc = `before ${before}`;
+	const oDesc = `${before} to ${after}`;
+	const aDesc = `${after} to ${terrible}`;
+	const tDesc = `after ${terrible}`;
 	return (
 		<>
 		  <input autoFocus
@@ -120,10 +159,10 @@ const UserForm = (props:{currentNode:PredicateNode<StoreNode>}) => {
 			onChange={e => setTempName(e.target.value)}
       defaultValue = {name}
       ></input>	
-			<Pcomp label="Before" max ={10 - total + tempB} setTemp={setTempB} temp={tempB} />
-			<Pcomp label="Ontime" max ={10 - total + tempO} setTemp={setTempO} temp={tempO} />
-			<Pcomp label="After" max = {10 - total + tempA} setTemp={setTempA} temp={tempA} />
-			<Pcomp label="Terrible" max ={10 - total + tempT} setTemp={setTempT} temp={tempT} />
+			<Pcomp label="Before" desc={bDesc} max ={10 - total + tempB} setTemp={setTempB} temp={tempB} />
+			<Pcomp label="Ontime" desc={oDesc}  max ={10 - total + tempO} setTemp={setTempO} temp={tempO} />
+			<Pcomp label="After" desc={aDesc}  max = {10 - total + tempA} setTemp={setTempA} temp={tempA} />
+			<Pcomp label="Terrible" desc={tDesc}  max ={10 - total + tempT} setTemp={setTempT} temp={tempT} />
       <button 
 			className={`w-full border border-gray-600 p-2 text-lg  ${(isChange && (total === 10)) ? 'bg-blue-300 rounded hover:bg-blue-500 hover:text-white' : ''}`}
 			onClick={update}
@@ -243,38 +282,64 @@ const Summary = (props:{ data:PredicateNode<StoreNode>[]}) => {
     </table>
   )
 }
-const RatingAppInner = (props:{userId:string, id:string}) => {
+const RatingAppInner = (props:{userId:string, id:string, date:string}) => {
   const {userId, id} = props;
   const db = useAspotContext();
-  const scoresNode = db.node('scores')
-  const currentScoreNode = scoresNode.s(userId);
+	db.watch((s) => console.log(s));
+	const date = useNode(db.node('current').s('date'));
+	console.log(date);
+  const scoresNode = db.node('scores');
+  const currentScoreNode = db.node('scores').s(userId);
   const scores = useNodeList(scoresNode);
   // const scores = scoresNode.list()
 	const name = useNode(currentScoreNode.s('name')) as string;
 
+	return (
+		<>
+		  <DateSelector />	
+		  <div className='w-2/3 text-center mx-auto my-12'>Please rate <strong>{id}</strong> using the form below. <div className='italic font-light'>The data is only used for the purposes of this rating and is not saved.</div></div>
+			<UserForm userId = {userId} currentNode={currentScoreNode} />
+    </>
+	)
+}
+const ResultsWrapper = (props:{id:string, date:string}) => {
+  const {id} = props;
+  const db = useAspotContext();
+	const date = useNode(db.node('current').s('date'))
+	const dateId = useNode(db.node('scores').s(date))
+  const scoresNode = db.node(dateId);
+  const scores = useNodeList(db.node('scores'));
 	const deleteItem = (key:string) => {
 		const name = scoresNode.s(key).s('name').value();
     scoresNode.s(key).del(1);
 		toast.success(`Delete record for ${name}`,{autoClose: 2000, hideProgressBar: true},)
 	}
 	return (
-		<>
-		  <div className='w-2/3 text-center mx-auto my-12'>Please rate <strong>{id}</strong> using the form below. <div className='italic font-light'>The data is only used for the purposes of this rating and is not saved.</div></div>
-			<UserForm currentNode={currentScoreNode} />
-	    { name ? <><h2 className='mx-auto w-50 text-3xl text-center font-bold my-12'>Results <span title='Copy Results to clipboard'><CopyIcon className='cursor-pointer inline' onClick={e => copy('results')}/></span><span title='Copy Results to clipboard as Markdown'><MdIcon className='cursor-pointer inline w-8' onClick={e => {copyToClipBoard(markdownResults(scoresNode)); 	toast.success('Copy Result table to Clipboard as Markdown',{autoClose: 2000, hideProgressBar: true})}} /></span>
-			</h2><Results data={scores} deleteItem={deleteItem} /> <Summary data={scores} /></> : <></> }
-     
-    </>
+    <>
+	    <h2 className='mx-auto w-50 text-3xl text-center font-bold my-12'>
+				Results for {new Date(Date.parse(date)).toDateString()} 
+				
+				<span title='Copy Results to clipboard'>
+					<CopyIcon className='cursor-pointer inline' onClick={e => copy('results')}/>
+				</span>
+				<span title='Copy Results to clipboard as Markdown'>
+					<MdIcon className='cursor-pointer inline w-8' onClick={e => {copyToClipBoard(markdownResults(scoresNode)); 	toast.success('Copy Result table to Clipboard as Markdown',{autoClose: 2000, hideProgressBar: true})}} />
+				</span>
+			</h2>
+			<Results data={scores} deleteItem={deleteItem} />
+	  </>
 	)
 }
 const RatingApp = (props:{id:string}) => {
 	const {id} = props;
 	const [userId, setUserId ] = useLocalStorage('meetingUserId2', v4());
   const node = aspot();
+	const date = '1655091094684';
 	webSocketConnector('wss://meetingappwebsocket.herokuapp.com/', id)(node);
 	return (
 		<AspotWrapper node={node} >
-      <RatingAppInner userId={userId} id={id}/>
+      <RatingAppInner userId={userId} id={id} date={date}/>
+			<ResultsWrapper id={id} date ={date} />
 	  </AspotWrapper>
 	)
 }
