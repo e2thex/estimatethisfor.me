@@ -297,7 +297,7 @@ const RatingAppInner = (props:{userId:string, id:string, date:string}) => {
 	return (
 		<>
 		  <DateSelector />	
-		  <div className='w-2/3 text-center mx-auto my-12'>Please rate <strong>{id}</strong> using the form below. <div className='italic font-light'>The data is only used for the purposes of this rating and is not saved.</div></div>
+		  <div className='w-2/3 text-center mx-auto my-12'>Please estimate <strong>{id}</strong> using the form below. <div className='italic font-light'>The data is only used for the purposes of this estimation and is not saved.</div></div>
 			<UserForm userId = {userId} currentNode={currentScoreNode} />
     </>
 	)

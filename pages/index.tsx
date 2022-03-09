@@ -26,7 +26,7 @@ const Home: NextPage = () => {
     return (
     <div className="container max-w-2xl mx-auto">
       <Head>
-        <title>Rate {id ? id : 'this for me!'}!</title>
+        <title>Estimate {id ? id : 'this for me!'}!</title>
         <meta name="description" content={id ? `rate ${id}` : "A app that lets you quick request a group of people to rate something"} />
         { id ? <></> : <meta property="og:image" content="/ratingbaseball.png" /> }
         <link rel="icon" href="/favicon.ico" />
@@ -34,7 +34,7 @@ const Home: NextPage = () => {
 
       <main className="">
         <h1 className="text-5xl text-center m-10">
-          { id ? <>Rate <em>{id}</em> <ShareIcon  className="inline cursor-pointer" xlinkTitle="Copy share url to clipboard" onClick={copyUrl}/></> : <>Rate this for me!</> }
+          { id ? <>Estimate <em>{id}</em> <ShareIcon  className="inline cursor-pointer" xlinkTitle="Copy share url to clipboard" onClick={copyUrl}/></> : <>Rate this for me!</> }
         </h1>
           <MeetingBody id={id || ''}/>
       </main>
