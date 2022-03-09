@@ -27,7 +27,7 @@ const Home: NextPage = () => {
     <div className="container max-w-2xl mx-auto">
       <Head>
         <title>Estimate {id ? id : 'this for me!'}!</title>
-        <meta name="description" content={id ? `rate ${id}` : "A app that lets you quick request a group of people to rate something"} />
+        <meta name="description" content={id ? `rate ${id}` : "A app that lets you quick request a group of people to do a BOAT estimate of something"} />
         { id ? <></> : <meta property="og:image" content="/ratingbaseball.png" /> }
         <link rel="icon" href="/favicon.ico" />
       </Head>
