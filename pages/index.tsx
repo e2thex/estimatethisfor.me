@@ -14,7 +14,7 @@ import ReactGA from 'react-ga4';
 import DateSelector from '../components/DateSelector';
 
 const Home: NextPage = () => {
-  ReactGA.initialize('G-HK7G752SEB');
+  ReactGA.initialize('G-Z0HYBDVSH4');
   const router = useRouter();
   const id = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id;
   ReactGA.send('pageview');
