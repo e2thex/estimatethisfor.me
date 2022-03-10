@@ -17,19 +17,21 @@ import DateSelector from './DateSelector';
 const formatDate = (date:number) => {
   return new Date(date).toLocaleDateString('us-EN',{month:'short',day:'2-digit'});
 }
-const getDate = (deadline:number, delta:number) => {
+const offsetDate = (deadline:number, delta:number) => {
 	const change = delta < 1 ?
 	  Math.max((deadline -Date.now())*delta, - 2592000000) :
 	  Math.min((deadline -Date.now())*delta, + 2592000000);
   return deadline + change;
 }
 
+const parseLocalDate = (date:string) =>(
+	Date.parse(date) + (new Date(date).getTimezoneOffset() * 60*1000)
 
+)
 const UserForm = (props:{userId:string, currentNode:PredicateNode<StoreNode>}) => {
-	const { userId } = props;
+	const { currentNode, userId } = props;
 	const db = useAspotContext();
-	const deadline = useNode(db.node('current').s('date'));
-	const currentNode = db.node('scores').s(userId);
+	const deadline = useNode(db.node('current').s('date')) + ' UTC';
 	const name = useNode(currentNode.s('name'))  as string || '';
 	const b = parseInt(useNode(currentNode.s('b')))  || 0;
 	const o = parseInt(useNode(currentNode.s('o')))  || 0;
@@ -132,11 +134,13 @@ const UserForm = (props:{userId:string, currentNode:PredicateNode<StoreNode>}) =
 		</div>
 		);
 	}
-	const before = formatDate(getDate(Date.parse(deadline), -.1)) 
-	const after = formatDate(getDate(Date.parse(deadline), 0)) 
-	const terrible = formatDate(getDate(Date.parse(deadline), .1))  
+	const aDeadline = Date.parse(deadline) + (new Date(deadline).getTimezoneOffset() * 60*1000)
+	const before = formatDate(offsetDate(aDeadline, -.1)) 
+	const ontime = formatDate(aDeadline);
+	const after = formatDate(aDeadline+60*60*24*1000) 
+	const terrible = formatDate(offsetDate(aDeadline, .1))  
 	const bDesc = `before ${before}`;
-	const oDesc = `${before} to ${after}`;
+	const oDesc = `${before} to ${ontime}`;
 	const aDesc = `${after} to ${terrible}`;
 	const tDesc = `after ${terrible}`;
 	return (
@@ -218,6 +222,15 @@ const Results = (props:{data:PredicateNode<StoreNode>[], deleteItem:(i:string) =
 	      return (<ResultRow key={id} removeItem={() => deleteItem(id)} data={node} />)
 	    })}
 	    </tbody>
+			<tfoot>
+				<tr>
+					<th>Average</th>
+					<th>{mean(data.map((node) => parseInt(node.s('b').value() || '')))*10}%</th>
+					<th>{mean(data.map((node) => parseInt(node.s('o').value() || '')))*10}%</th>
+					<th>{mean(data.map((node) => parseInt(node.s('a').value() || '')))*10}%</th>
+					<th>{mean(data.map((node) => parseInt(node.s('t').value() || '')))*10}%</th>
+				</tr>
+			</tfoot>
 	  </table>
 		</>
 	)
@@ -273,9 +286,7 @@ const Summary = (props:{ data:PredicateNode<StoreNode>[]}) => {
 const RatingAppInner = (props:{userId:string, id:string, date:string}) => {
   const {userId, id} = props;
   const db = useAspotContext();
-	db.watch((s) => console.log(s));
 	const date = useNode(db.node('current').s('date'));
-	console.log(date);
   const scoresNode = db.node('scores');
   const currentScoreNode = db.node('scores').s(userId);
   const scores = useNodeList(scoresNode);
@@ -287,6 +298,7 @@ const RatingAppInner = (props:{userId:string, id:string, date:string}) => {
 		  <DateSelector />	
 		  <div className='w-2/3 text-center mx-auto my-12'>Please estimate <strong>{id}</strong> using the form below. <div className='italic font-light'>The data is only used for the purposes of this estimation and is not saved.</div></div>
 			<UserForm userId = {userId} currentNode={currentScoreNode} />
+			{name ? <ResultsWrapper id={id} date ={date} /> : <></>}
     </>
 	)
 }
@@ -305,7 +317,7 @@ const ResultsWrapper = (props:{id:string, date:string}) => {
 	return (
     <>
 	    <h2 className='mx-auto w-50 text-3xl text-center font-bold my-12'>
-				Results for {new Date(Date.parse(date)).toDateString()} 
+				Results for {new Date(parseLocalDate(date)).toDateString()} 
 				
 				<span title='Copy Results to clipboard'>
 					<CopyIcon className='cursor-pointer inline' onClick={e => copy('results')}/>
@@ -327,7 +339,6 @@ const RatingApp = (props:{id:string}) => {
 	return (
 		<AspotWrapper node={node} >
       <RatingAppInner userId={userId} id={id} date={date}/>
-			<ResultsWrapper id={id} date ={date} />
 	  </AspotWrapper>
 	)
 }

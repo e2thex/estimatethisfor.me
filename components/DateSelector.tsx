@@ -10,7 +10,6 @@ const DateSelector = () => {
 	const [tempDate, setTempDate] = useState(date); 
   const change = (e:ChangeEvent<HTMLInputElement>) => {
     db.node('current').s('date').is(e.currentTarget.value);
-    console.log({v:e.currentTarget.value,date});
 
   }
   return (
