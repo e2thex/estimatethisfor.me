@@ -18,29 +18,17 @@ const formatDate = (date:number) => {
   return new Date(date).toLocaleDateString('us-EN',{month:'short',day:'2-digit'});
 }
 const getDate = (deadline:number, delta:number) => {
-  return deadline + (deadline -Date.now())*delta
+	const change = delta < 1 ?
+	  Math.max((deadline -Date.now())*delta, - 2592000000) :
+	  Math.min((deadline -Date.now())*delta, + 2592000000);
+  return deadline + change;
 }
-const  getDates = (date:string) => {
-  const today = Date.now();
-	const deadline = Date.parse(date);
-	const delta = deadline - today;
-	const before = formatDate(getDate(deadline, -.1)) 
-	const after = formatDate(getDate(deadline, .1)) 
-	const terrible = formatDate(getDate(deadline, .2))  
-	const r = {
-		b: `before ${before}}`,
-		o: `between ${before} and ${after}`,
-		a: `between ${after} and ${terrible}`,
-		t: `after ${terrible}`,
-	}
-	console.log({today, deadline, r});
-}
+
 
 const UserForm = (props:{userId:string, currentNode:PredicateNode<StoreNode>}) => {
 	const { userId } = props;
 	const db = useAspotContext();
 	const deadline = useNode(db.node('current').s('date'));
-	const dates = getDates(deadline);
 	const currentNode = db.node('scores').s(userId);
 	const name = useNode(currentNode.s('name'))  as string || '';
 	const b = parseInt(useNode(currentNode.s('b')))  || 0;
@@ -104,7 +92,7 @@ const UserForm = (props:{userId:string, currentNode:PredicateNode<StoreNode>}) =
 		const optionsThatSteal = values.filter((v,i) => i > max);
 		return (
 		<div {...rest} className ="flex flex-wrap" title={desc}>
-			<label htmlFor={label} title={desc} className="lg:w-1/6 block text-lg w-1/2">
+			<label htmlFor={label} title={desc} className="lg:w-3/12 block text-lg w-1/2">
 				<span className="font-bold text-2xl">{label.substring(0,1)}</span>
 				{label.substring(1)} 
 				<div className="text-sm inline-block lg:block">({desc})</div>
@@ -128,7 +116,7 @@ const UserForm = (props:{userId:string, currentNode:PredicateNode<StoreNode>}) =
       focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none" id={label} value = {temp} onChange={e => setTemp(parseInt(e.currentTarget.value))} >
 				{options.map((v,i) => <option key={v} value={i}>{v}</option>)}
 			</select>
-		  <div className="w-full lg:w-4/6 block">
+		  <div className="w-full lg:w-7/12 block">
 				<DropTarget highlightClassName="bg-blue-800 border" targetKey="points" onHit={() => setTemp(temp+1)}>
 					<div className='w-full'>
             {temp>0? <DotRemove decrease={() => setTemp(temp-1)} /> : <></>}
@@ -145,8 +133,8 @@ const UserForm = (props:{userId:string, currentNode:PredicateNode<StoreNode>}) =
 		);
 	}
 	const before = formatDate(getDate(Date.parse(deadline), -.1)) 
-	const after = formatDate(getDate(Date.parse(deadline), .1)) 
-	const terrible = formatDate(getDate(Date.parse(deadline), .2))  
+	const after = formatDate(getDate(Date.parse(deadline), 0)) 
+	const terrible = formatDate(getDate(Date.parse(deadline), .1))  
 	const bDesc = `before ${before}`;
 	const oDesc = `${before} to ${after}`;
 	const aDesc = `${after} to ${terrible}`;
