@@ -7,12 +7,14 @@ import {markdownTable} from 'markdown-table'
 import { toast } from 'react-toastify';
 import { DragDropContainer, DropTarget } from 'react-drag-drop-container';
 import { useNode, AspotWrapper, useAspotContext, useNodeList} from '@aspot/react';
-import { aspot, PredicateNode, StoreNode, SubjectNode  } from '@aspot/core';
+import { aspot, has, PredicateNode, StoreNode, SubjectNode, TermType, watcher  } from '@aspot/core';
 import webSocketConnector from '@aspot/websocket';
 import copyToClipBoard from 'copy-to-clipboard';
 import CopyIcon from './CopyIcon'
 import MdIcon from './MdIcon';
 import DateSelector from './DateSelector';
+import { WrappedBuildError } from 'next/dist/server/next-server';
+import { delBasePath } from 'next/dist/shared/lib/router/router';
 
 const formatDate = (date:number) => {
   return new Date(date).toLocaleDateString('us-EN',{month:'short',day:'2-digit'});
@@ -181,7 +183,7 @@ const ResultRow = (props:{data:PredicateNode<StoreNode>, removeItem:() => void})
 	const o = useNode(data.s('o'));
 	const a = useNode(data.s('a'));
 	const t = useNode(data.s('t'));
-	
+
 	return (
 	  <tr className="border-t">
 	    <td className="p-2 text-center">{name}</td>
@@ -202,6 +204,21 @@ const copy = (id:string) => {
 }
 const Results = (props:{data:PredicateNode<StoreNode>[], deleteItem:(i:string) => void}) => {
 	const { data, deleteItem } = props;
+	const getMean =() => ({
+		t: mean(data.map((node) => parseInt(node.s('t').value() || '')))*10,
+		b: mean(data.map((node) => parseInt(node.s('b').value() || '')))*10,
+		o: mean(data.map((node) => parseInt(node.s('o').value() || '')))*10,
+		a: mean(data.map((node) => parseInt(node.s('a').value() || '')))*10,
+	})
+	const [means, setMeans] = useState(getMean());
+	const db = useAspotContext();
+	db.watch((s) => {
+		// t is the past one that gets written
+		if(s && s.predicate === 't') {
+		  setMeans(getMean())
+		};
+	});
+	
 
 	//const stuff = useContextGun()(data, 'data');
 	return (
@@ -225,10 +242,10 @@ const Results = (props:{data:PredicateNode<StoreNode>[], deleteItem:(i:string) =
 			<tfoot>
 				<tr>
 					<th>Average</th>
-					<th>{mean(data.map((node) => parseInt(node.s('b').value() || '')))*10}%</th>
-					<th>{mean(data.map((node) => parseInt(node.s('o').value() || '')))*10}%</th>
-					<th>{mean(data.map((node) => parseInt(node.s('a').value() || '')))*10}%</th>
-					<th>{mean(data.map((node) => parseInt(node.s('t').value() || '')))*10}%</th>
+					<th>{means.b}%</th>
+					<th>{means.o}%</th>
+					<th>{means.a}%</th>
+					<th>{means.t}%</th>
 				</tr>
 			</tfoot>
 	  </table>
@@ -309,6 +326,7 @@ const ResultsWrapper = (props:{id:string, date:string}) => {
 	const dateId = useNode(db.node('scores').s(date))
   const scoresNode = db.node(dateId);
   const scores = useNodeList(db.node('scores'));
+
 	const deleteItem = (key:string) => {
 		const name = scoresNode.s(key).s('name').value();
     scoresNode.s(key).del(1);
