@@ -34,7 +34,7 @@ const Home: NextPage = () => {
 
       <main className="">
         <h1 className="text-5xl text-center m-10">
-          { id ? <>Estimate <em>{id}</em> <ShareIcon  className="inline cursor-pointer" xlinkTitle="Copy share url to clipboard" onClick={copyUrl}/></> : <>Rate this for me!</> }
+          { id ? <>Estimate <em>{id}</em> <ShareIcon  className="inline cursor-pointer" xlinkTitle="Copy share url to clipboard" onClick={copyUrl}/></> : <>Estimate this for me!</> }
         </h1>
           <MeetingBody id={id || ''}/>
       </main>
