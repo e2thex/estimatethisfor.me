@@ -36,6 +36,7 @@ const Home: NextPage = () => {
         <h1 className="text-5xl text-center m-10">
           { id ? <>Estimate <em>{id}</em> <ShareIcon  className="inline cursor-pointer" xlinkTitle="Copy share url to clipboard" onClick={copyUrl}/></> : <>Estimate this for me!</> }
         </h1>
+        <div className="text-xs text-center mb-5 italic">For more instruction see the <a className="underline" href="https://e2thex.org/projects/estimatethisforme">Estimate this for me Project page</a>.  For more info on the BOAT Estimate process she the essay <a className="underline" href="https://e2thex.org/forkthesystem/boatestimate/">BOAT Estimate</a>.</div>
           <MeetingBody id={id || ''}/>
       </main>
       <ToastContainer />
