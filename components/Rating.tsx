@@ -20,9 +20,9 @@ const formatDate = (date:number) => {
   return new Date(date).toLocaleDateString('us-EN',{month:'short',day:'2-digit'});
 }
 const offsetDate = (deadline:number, delta:number) => {
-	const change = delta < 1 ?
-	  Math.max((deadline -Date.now())*delta, - 2592000000) :
-	  Math.min((deadline -Date.now())*delta, + 2592000000);
+	const change = delta < 0 ?
+	  Math.max(Math.min((deadline -Date.now())*delta, - 604800000), - 2592000000) :
+	  Math.min(Math.max((deadline -Date.now())*delta, + 604800000), + 2592000000);
   return deadline + change;
 }
 
