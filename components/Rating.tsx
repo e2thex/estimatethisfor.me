@@ -14,7 +14,6 @@ import CopyIcon from './CopyIcon'
 import MdIcon from './MdIcon';
 import DateSelector from './DateSelector';
 import { WrappedBuildError } from 'next/dist/server/next-server';
-import { delBasePath } from 'next/dist/shared/lib/router/router';
 
 const formatDate = (date:number) => {
   return new Date(date).toLocaleDateString('us-EN',{month:'short',day:'2-digit'});
