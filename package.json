@@ -21,7 +21,7 @@
   "dependencies": {
     "@altrx/gundb-react-hooks": "^0.9.6",
     "@aspot/core": "^0.5.5",
-    "@aspot/react": "^0.5.5",
+    "@aspot/react": "^0.6.3",
     "@aspot/websocket": "^0.5.8",
     "@rehooks/local-storage": "^2.4.3",
     "@types/lodash": "^4.14.175",
