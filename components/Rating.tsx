@@ -32,12 +32,12 @@ const parseLocalDate = (date:string) =>(
 const UserForm = (props:{userId:string, currentNode:PredicateNode<StoreNode>}) => {
 	const { currentNode, userId } = props;
 	const db = useAspotContext();
-	const deadline = useNode(db.node('current').s('date')) + ' UTC';
-	const name = useNode(currentNode.s('name'))  as string || '';
-	const b = parseInt(useNode(currentNode.s('b')))  || 0;
-	const o = parseInt(useNode(currentNode.s('o')))  || 0;
-	const a = parseInt(useNode(currentNode.s('a')))  || 0;
-	const t = parseInt(useNode(currentNode.s('t')))  || 0;
+	const deadline = useNode(db.node('current').s('date') as any) + ' UTC';
+	const name = useNode(currentNode.s('name') as any)  as string || '';
+	const b = parseInt(useNode(currentNode.s('b') as any))  || 0;
+	const o = parseInt(useNode(currentNode.s('o') as any))  || 0;
+	const a = parseInt(useNode(currentNode.s('a') as any))  || 0;
+	const t = parseInt(useNode(currentNode.s('t') as any))  || 0;
 	const [tempName, setTempName] = useState('');
 	const [tempB, setTempB] = useState(b);
 	const [tempO, setTempO] = useState(o);
@@ -177,11 +177,11 @@ const markdownResults = (data:SubjectNode<StoreNode>) => {
 }
 const ResultRow = (props:{data:PredicateNode<StoreNode>, removeItem:() => void}) => {
 	const {data, removeItem } = props;
-	const name = useNode(data.s('name'));
-	const b = useNode(data.s('b'));
-	const o = useNode(data.s('o'));
-	const a = useNode(data.s('a'));
-	const t = useNode(data.s('t'));
+	const name = useNode(data.s('name') as any);
+	const b = useNode(data.s('b') as any);
+	const o = useNode(data.s('o') as any);
+	const a = useNode(data.s('a') as any);
+	const t = useNode(data.s('t') as any);
 
 	return (
 	  <tr className="border-t">
@@ -302,12 +302,12 @@ const Summary = (props:{ data:PredicateNode<StoreNode>[]}) => {
 const RatingAppInner = (props:{userId:string, id:string, date:string}) => {
   const {userId, id} = props;
   const db = useAspotContext();
-	const date = useNode(db.node('current').s('date'));
+	const date = useNode(db.node('current').s('date') as any);
   const scoresNode = db.node('scores');
   const currentScoreNode = db.node('scores').s(userId);
   const scores = useNodeList(scoresNode);
   // const scores = scoresNode.list()
-	const name = useNode(currentScoreNode.s('name')) as string;
+	const name = useNode(currentScoreNode.s('name') as any) as string;
 
 	return (
 		<>
@@ -323,8 +323,8 @@ const RatingAppInner = (props:{userId:string, id:string, date:string}) => {
 const ResultsWrapper = (props:{id:string, date:string}) => {
   const {id} = props;
   const db = useAspotContext();
-	const date = useNode(db.node('current').s('date'))
-	const dateId = useNode(db.node('scores').s(date))
+	const date = useNode(db.node('current').s('date') as any)
+	const dateId = useNode(db.node('scores').s(date) as any)
   const scoresNode = db.node(dateId);
   const scores = useNodeList(db.node('scores'));
 
@@ -356,7 +356,7 @@ const RatingApp = (props:{id:string}) => {
 	const date = '1655091094684';
 	webSocketConnector('wss://meetingappwebsocket.herokuapp.com/', id)(node);
 	return (
-		<AspotWrapper node={node} >
+		<AspotWrapper node={node as any} >
       <RatingAppInner userId={userId} id={id} date={date}/>
 	  </AspotWrapper>
 	)
