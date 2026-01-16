@@ -176,14 +176,25 @@ const UserForm = (props:{userId:string, currentNode:PredicateNode<StoreNode>}) =
 	)
 };
 const markdownResults = (data:SubjectNode<StoreNode>) => {
-	const rows = data.list().map(d => [
+	const dataList = data.list();
+	const rows = dataList.map(d => [
 		d.s('name').value(),
-		d.s('score').value(),
-		d.s('reason').value(),
+		`${parseInt(d.s('b').value() || '0')*10}%`,
+		`${parseInt(d.s('o').value() || '0')*10}%`,
+		`${parseInt(d.s('a').value() || '0')*10}%`,
+		`${parseInt(d.s('t').value() || '0')*10}%`,
 	]);
+	
+	// Calculate averages
+	const avgB = mean(dataList.map((node) => parseInt(node.s('b').value() || '0')))*10;
+	const avgO = mean(dataList.map((node) => parseInt(node.s('o').value() || '0')))*10;
+	const avgA = mean(dataList.map((node) => parseInt(node.s('a').value() || '0')))*10;
+	const avgT = mean(dataList.map((node) => parseInt(node.s('t').value() || '0')))*10;
+	
 	return markdownTable([
-		['name', 'score', 'reason'],
+		['name', 'before', 'ontime', 'after', 'terrible'],
 		...rows,
+		['**Average**', `${avgB}%`, `${avgO}%`, `${avgA}%`, `${avgT}%`],
 	]);
 }
 const ResultRow = (props:{data:PredicateNode<StoreNode>, removeItem:() => void}) => {
