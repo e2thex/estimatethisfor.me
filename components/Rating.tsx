@@ -24,8 +24,8 @@ const getWeeksFromToday = (date:number) => {
   const diffInWeeks = Math.round(diffInMs / (1000 * 60 * 60 * 24 * 7));
   return diffInWeeks;
 }
-const formatDateWithWeeks = (date:number) => {
-  const dateStr = formatDate(date);
+const formatDateWithWeeks = (date:number, offset:number = 0) => {
+  const dateStr = formatDate(date + offset);
   const weeks = getWeeksFromToday(date);
   return `${dateStr} (${weeks}w)`;
 }
@@ -149,7 +149,7 @@ const UserForm = (props:{userId:string, currentNode:PredicateNode<StoreNode>}) =
 	const aDeadline = Date.parse(deadline) + (new Date(deadline).getTimezoneOffset() * 60*1000)
 	const before = formatDateWithWeeks(offsetDate(aDeadline, -.1)) 
 	const ontime = formatDateWithWeeks(aDeadline);
-	const after = formatDateWithWeeks(aDeadline+60*60*24*1000) 
+	const after = formatDateWithWeeks(aDeadline, 60*60*24*1000) 
 	const terrible = formatDateWithWeeks(offsetDate(aDeadline, .1))  
 	const bDesc = `before ${before}`;
 	const oDesc = `${before} to ${ontime}`;
