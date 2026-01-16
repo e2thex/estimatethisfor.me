@@ -27,7 +27,7 @@ const getWeeksFromToday = (date:number) => {
 const formatDateWithWeeks = (date:number) => {
   const dateStr = formatDate(date);
   const weeks = getWeeksFromToday(date);
-  return `${dateStr} (${weeks}w)`;
+  return `${dateStr} ${weeks}w`;
 }
 const offsetDate = (deadline:number, delta:number) => {
 	const change = delta < 0 ?
