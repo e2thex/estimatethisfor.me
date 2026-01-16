@@ -175,9 +175,8 @@ const UserForm = (props:{userId:string, currentNode:PredicateNode<StoreNode>}) =
 
 	)
 };
-const markdownResults = (data:SubjectNode<StoreNode>) => {
-	const dataList = data.list();
-	const rows = dataList.map(d => [
+const markdownResults = (data:PredicateNode<StoreNode>[]) => {
+	const rows = data.map(d => [
 		d.s('name').value(),
 		`${parseInt(d.s('b').value() || '0')*10}%`,
 		`${parseInt(d.s('o').value() || '0')*10}%`,
@@ -186,10 +185,10 @@ const markdownResults = (data:SubjectNode<StoreNode>) => {
 	]);
 	
 	// Calculate averages
-	const avgB = mean(dataList.map((node) => parseInt(node.s('b').value() || '0')))*10;
-	const avgO = mean(dataList.map((node) => parseInt(node.s('o').value() || '0')))*10;
-	const avgA = mean(dataList.map((node) => parseInt(node.s('a').value() || '0')))*10;
-	const avgT = mean(dataList.map((node) => parseInt(node.s('t').value() || '0')))*10;
+	const avgB = (mean(data.map((node) => parseInt(node.s('b').value() || '0'))) || 0)*10;
+	const avgO = (mean(data.map((node) => parseInt(node.s('o').value() || '0'))) || 0)*10;
+	const avgA = (mean(data.map((node) => parseInt(node.s('a').value() || '0'))) || 0)*10;
+	const avgT = (mean(data.map((node) => parseInt(node.s('t').value() || '0'))) || 0)*10;
 	
 	return markdownTable([
 		['name', 'before', 'ontime', 'after', 'terrible'],
@@ -226,10 +225,10 @@ const copy = (id:string) => {
 const Results = (props:{data:PredicateNode<StoreNode>[], deleteItem:(i:string) => void}) => {
 	const { data, deleteItem } = props;
 	const getMean =() => ({
-		t: mean(data.map((node) => parseInt(node.s('t').value() || '')))*10,
-		b: mean(data.map((node) => parseInt(node.s('b').value() || '')))*10,
-		o: mean(data.map((node) => parseInt(node.s('o').value() || '')))*10,
-		a: mean(data.map((node) => parseInt(node.s('a').value() || '')))*10,
+		t: (mean(data.map((node) => parseInt(node.s('t').value() || '0'))) || 0)*10,
+		b: (mean(data.map((node) => parseInt(node.s('b').value() || '0'))) || 0)*10,
+		o: (mean(data.map((node) => parseInt(node.s('o').value() || '0'))) || 0)*10,
+		a: (mean(data.map((node) => parseInt(node.s('a').value() || '0'))) || 0)*10,
 	})
 	const [means, setMeans] = useState(getMean());
 	const db = useAspotContext();
@@ -363,9 +362,9 @@ const ResultsWrapper = (props:{id:string, date:string}) => {
 				<span title='Copy Results to clipboard'>
 					<CopyIcon className='cursor-pointer inline' onClick={e => copy('results')}/>
 				</span>
-				<span title='Copy Results to clipboard as Markdown'>
-					<MdIcon className='cursor-pointer inline w-8' onClick={e => {copyToClipBoard(markdownResults(scoresNode)); 	toast.success('Copy Result table to Clipboard as Markdown',{autoClose: 2000, hideProgressBar: true})}} />
-				</span>
+			<span title='Copy Results to clipboard as Markdown'>
+				<MdIcon className='cursor-pointer inline w-8' onClick={e => {copyToClipBoard(markdownResults(scores)); 	toast.success('Copy Result table to Clipboard as Markdown',{autoClose: 2000, hideProgressBar: true})}} />
+			</span>
 			</h2>
 			<Results data={scores} deleteItem={deleteItem} />
 	  </>
