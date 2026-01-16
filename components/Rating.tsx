@@ -18,6 +18,17 @@ import { WrappedBuildError } from 'next/dist/server/next-server';
 const formatDate = (date:number) => {
   return new Date(date).toLocaleDateString('us-EN',{month:'short',day:'2-digit'});
 }
+const getWeeksFromToday = (date:number) => {
+  const today = Date.now();
+  const diffInMs = date - today;
+  const diffInWeeks = Math.round(diffInMs / (1000 * 60 * 60 * 24 * 7));
+  return diffInWeeks;
+}
+const formatDateWithWeeks = (date:number) => {
+  const dateStr = formatDate(date);
+  const weeks = getWeeksFromToday(date);
+  return `${dateStr} (${weeks}w)`;
+}
 const offsetDate = (deadline:number, delta:number) => {
 	const change = delta < 0 ?
 	  Math.max(Math.min((deadline -Date.now())*delta, - 604800000), - 2592000000) :
@@ -136,10 +147,10 @@ const UserForm = (props:{userId:string, currentNode:PredicateNode<StoreNode>}) =
 		);
 	}
 	const aDeadline = Date.parse(deadline) + (new Date(deadline).getTimezoneOffset() * 60*1000)
-	const before = formatDate(offsetDate(aDeadline, -.1)) 
-	const ontime = formatDate(aDeadline);
-	const after = formatDate(aDeadline+60*60*24*1000) 
-	const terrible = formatDate(offsetDate(aDeadline, .1))  
+	const before = formatDateWithWeeks(offsetDate(aDeadline, -.1)) 
+	const ontime = formatDateWithWeeks(aDeadline);
+	const after = formatDateWithWeeks(aDeadline+60*60*24*1000) 
+	const terrible = formatDateWithWeeks(offsetDate(aDeadline, .1))  
 	const bDesc = `before ${before}`;
 	const oDesc = `${before} to ${ontime}`;
 	const aDesc = `${after} to ${terrible}`;
