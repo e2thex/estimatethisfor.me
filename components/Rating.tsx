@@ -109,7 +109,7 @@ const UserForm = (props:{userId:string, currentNode:PredicateNode<StoreNode>}) =
 			<label htmlFor={label} title={desc} className="lg:w-3/12 block text-lg w-1/2">
 				<span className="font-bold text-2xl">{label.substring(0,1)}</span>
 				{label.substring(1)} 
-				<div className="text-sm inline-block lg:block">({desc})</div>
+				<div className="text-sm inline-block lg:block">{desc}</div>
 			</label>
 			<select title={desc} className="form-select form-select-lg mb-3
       appearance-none
